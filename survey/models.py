@@ -14,13 +14,18 @@ class Survey(models.Model):
 
 
 class Interviewee(models.Model):
-    firt_name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     date_interviewed = models.DateField(auto_now=True)
     survey = models.ForeignKey(to=Survey, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"{self.firt_name} {self.last_name}"
+        return self.full_name
+
+    def save(self, *args, **kwargs):
+        self.full_name = f'{self.first_name} {self.last_name}'
+        super().save(*args, **kwargs)
 
 
 class Question(models.Model):
@@ -28,6 +33,7 @@ class Question(models.Model):
 
 
 class Response(models.Model):
+    date_responded = models.DateField(auto_now=True)
     question = models.ForeignKey(to=Question, on_delete=models.CASCADE)
     by = models.ForeignKey(to=Interviewee, on_delete=models.CASCADE)
 
