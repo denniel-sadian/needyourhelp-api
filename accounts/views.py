@@ -15,7 +15,6 @@ class CreateUserView(CreateAPIView):
 
 
 class LoginView(APIView):
-    permission_classes = ()
 
     def post(self, request):
         username = request.data.get("username")
@@ -23,12 +22,18 @@ class LoginView(APIView):
         user = authenticate(username=username, password=password)
         if user.is_active:
             login(request, user)
-            return Response({"token": user.auth_token.key})
+            return Response({
+                "token": user.auth_token.key,
+                "username": user.username,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+            }, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Wrong Credentials"},
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view
+@api_view(['GET'])
 def log_out(request):
     logout(request)
+    return Response({'detail': 'Logged out'}, status=status.HTTP_200_OK)
