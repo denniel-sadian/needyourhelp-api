@@ -21,6 +21,24 @@ class TextAnswerableQuestion(models.Model):
         return self.text
 
 
+class MultipleChoice(models.Model):
+    topic = models.ForeignKey(to=Topic, on_delete=models.PROTECT)
+    text = models.TextField()
+    multiple = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.text
+
+
+class Choice(models.Model):
+    question = models.ForeignKey(to=MultipleChoice, on_delete=models.PROTECT)
+    text = models.CharField(max_length=200)
+    count = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.text
+
+
 class Interviewee(models.Model):
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
@@ -46,3 +64,9 @@ class TextResponse(models.Model):
 
     def __str__(self):
         return self.text
+
+
+class MultipleResponse(models.Model):
+    survey = models.ForeignKey(to=Survey, on_delete=models.PROTECT)
+    question = models.ForeignKey(
+        to=MultipleChoice, on_delete=models.PROTECT)

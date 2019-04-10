@@ -58,3 +58,24 @@ class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.TextAnswerableQuestion
         fields = ('id', 'text', 'topic')
+
+
+class MultipleChoiceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.MultipleChoice
+        fields = ('multiple',)
+
+
+class ChoiceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Choice
+        fields = ('id', 'count', 'text', 'question')
+
+
+class IntervieweeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Interviewee
+        fields = '__all__'

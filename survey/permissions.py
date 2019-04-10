@@ -51,5 +51,8 @@ class IsTopicOwnerOrReadOnly(permissions.BasePermission):
             return True
         if type(obj) == models.Topic:
             return obj.owner == request.user
-        elif type(obj) == models.TextAnswerableQuestion:
+        elif type(obj) == models.Choice:
+            return obj.question.topic.owner == request.user
+        elif type(obj) in [models.TextAnswerableQuestion,
+                           models.MultipleChoice]:
             return obj.topic.owner == request.user
