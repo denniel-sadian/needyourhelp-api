@@ -1,3 +1,4 @@
+"""
 from rest_framework import serializers
 
 from .models import Survey
@@ -37,3 +38,23 @@ class IntervieweeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Interviewee
         fields = ('first_name', 'last_name')
+"""
+from rest_framework import serializers
+
+from . import models
+
+
+class TopicSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+
+    class Meta:
+        model = models.Topic
+        fields = ('id', 'title', 'description',
+                  'date_started', 'done', 'owner')
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.TextAnswerableQuestion
+        fields = ('id', 'text', 'topic')
