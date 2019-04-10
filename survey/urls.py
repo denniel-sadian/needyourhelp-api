@@ -28,6 +28,8 @@ from . import views
 router = DefaultRouter()
 router.register('topics', views.TopicViewSet)
 
+app_name = 'survey'
+
 urlpatterns = [
     path('', include(router.urls)),
     path('topics/<int:topic_id>/questions/<int:id>/', views.QuestionDetail.as_view(),
