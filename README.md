@@ -1,3 +1,16 @@
+# Need Your Help (backend)
+
+> Provides the api for the "need your help" survey website.
+
+## End-points
+- `auth/register/` user registration
+- `auth/login/` user login
+- `auth/logout/` user logout 
+- `topics/` list or create topics
+- `topics/<int:topic_id>/` retrieve, update or delete topic
+- `topics/<int:topic_id>/questions/` lest or create questions
+- `topics/<int:topic_id>/questions` 
+
 Topic -> Survey -> Interviewee -> Responses
 Topic -> TextAnswerableQuestion
 
