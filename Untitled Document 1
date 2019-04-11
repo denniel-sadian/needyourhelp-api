@@ -53,3 +53,5 @@ topics/<int:topic_id>/multiplechoice/<int:qid>/choices/<int:pk>/choose/
             - React
 - Denniel must be able to edit all things he created.
 - Bon Bon, however, won't be.
+
+/topic/<int:topic_id>/result/

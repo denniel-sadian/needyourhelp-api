@@ -64,4 +64,7 @@ urlpatterns = [
 
     path('topics/<int:topic_id>/questions/<int:question>/respond/',
          views.RespondToQuestionView.as_view(), name='question-respond'),
+
+    path('topics/<int:topic_id>/results/',
+         views.ResultView.as_view(), name='topic-results')
 ]
