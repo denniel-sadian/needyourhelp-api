@@ -12,9 +12,12 @@ from . import serializers
 from . import permissions as perms
 
 
-def get_or_create_interviewee(data):
+def get_or_create_interviewee(request, data):
     """Getting or creating the interviewee"""
     interviewee = models.Interviewee
+    if request.user.is_authenticated:
+        data['first_name'] = request.user.first_name
+        data['last_name'] = request.user.last_name
     if models.Interviewee.objects.filter(
             first_name=data['first_name'], last_name=data['last_name']).exists():
         interviewee = get_object_or_404(
@@ -70,7 +73,7 @@ class TopicViewSet(ModelViewSet):
         """Extra action for listing all the topic's
            multiple choice questions"""
         if request.method == 'GET':
-            s = serializers.QuestionSerializer(
+            s = serializers.MultipleChoiceSerializer(
                 self.get_object().multiplechoice_set.all(),
                 context={'request': request}, many=True)
             return Response(data=s.data, status=status.HTTP_200_OK)
@@ -78,7 +81,7 @@ class TopicViewSet(ModelViewSet):
             q = models.MultipleChoice(
                 topic=self.get_object(), text=request.data['text'])
             q.save()
-            return Response(data=serializers.QuestionSerializer(q).data,
+            return Response(data=serializers.MultipleChoiceSerializer(q).data,
                             status=status.HTTP_201_CREATED)
 
 
@@ -97,8 +100,9 @@ class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
 class MultipleChoiceDetail(generics.RetrieveUpdateDestroyAPIView):
     """View for displaying the multiple choice question's detail"""
     queryset = models.TextAnswerableQuestion.objects.all()
-    serializer_class = serializers.QuestionSerializer
-    permission_classes = (perms.IsTopicOwnerOrReadOnly,)
+    serializer_class = serializers.MultipleChoiceSerializer
+    permission_classes = (perms.IsTopicOwnerOrReadOnly,
+                          permissions.IsAuthenticatedOrReadOnly)
     lookup_field = 'id'
 
     def get_object(self):
@@ -151,28 +155,29 @@ class ChoiceViewSet(ModelViewSet):
         choice = question.choice_set.get(id=params['id'])
 
         # Getting the interviewee
-        interviewee = get_or_create_interviewee(data)
+        interviewee = get_or_create_interviewee(request, data)
 
         # Getting or creating the survey
         survey = get_or_create_survey(topic, interviewee)
 
-        # Limiting the interviewee to choose if the question is
-        # not choose_all
-        response_exists = models.MultipleResponse.objects.filter(
+        # Interviewee can only choose one if the question asks
+        # for one choice only
+        response_to_question_exists = models.MultipleResponse.objects.filter(
             survey=survey, question=question).exists()
-        if response_exists and not question.choose_all:
-            return Response(data={'detail': 'You can only choose one.'},
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+        if not question.multiple and response_to_question_exists:
+            return Response(data={'detail': 'You had choosen already.'},
+                            status=status.HTTP_403_FORBIDDEN)
 
-        # Creates the response to the survey and question if
-        # it does not exist. Else, it will not let it.
-        if not response_exists:
-            models.MultipleResponse.objects.create(
-                survey=survey, question=question)
-        else:
-            return Response(data={
-                'detail': 'You had responded to this question already.'},
-                status=status.HTTP_406_NOT_ACCEPTABLE)
+        # Interviewee can only choose the choice once
+        response_to_question_choice_exists = models.MultipleResponse.objects.filter(
+            survey=survey, question=question, choice=choice).exists()
+        if question.multiple and response_to_question_choice_exists:
+            return Response(data={'detail': 'You had choosen this choice already.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        # Creates the response to the survey and question including the choice
+        models.MultipleResponse.objects.create(
+            survey=survey, question=question, choice=choice)
 
         # Finally increments the choice's count and saves it
         choice.count += 1
@@ -191,7 +196,7 @@ class RespondToQuestionView(APIView):
         params = kwargs
 
         # Getting the topic
-        topic = get_object_or_404(models.Topic, id=params['topic'])
+        topic = get_object_or_404(models.Topic, id=params['topic_id'])
 
         # Checking whether the topic is done
         if topic.done:
@@ -203,7 +208,7 @@ class RespondToQuestionView(APIView):
             models.TextAnswerableQuestion, id=params['question'])
 
         # Getting the interviewee
-        interviewee = get_or_create_interviewee(data)
+        interviewee = get_or_create_interviewee(request, data)
 
         # Getting or creating the survey
         survey = get_or_create_survey(topic, interviewee)

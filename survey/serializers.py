@@ -49,29 +49,29 @@ class TopicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Topic
-        fields = ('id', 'title', 'description',
-                  'date_started', 'done', 'owner')
+        fields = '__all__'
 
 
 class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.TextAnswerableQuestion
-        fields = ('id', 'text', 'topic')
+        fields = '__all__'
 
 
 class MultipleChoiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.MultipleChoice
-        fields = ('multiple',)
+        fields = '__all__'
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
+    topic = serializers.ReadOnlyField(source='question.topic.id')
 
     class Meta:
         model = models.Choice
-        fields = ('id', 'count', 'text', 'question')
+        fields = ('id', 'text', 'count', 'question', 'topic')
 
 
 class IntervieweeSerializer(serializers.ModelSerializer):

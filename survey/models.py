@@ -14,7 +14,7 @@ class Topic(models.Model):
 
 
 class TextAnswerableQuestion(models.Model):
-    topic = models.ForeignKey(to=Topic, on_delete=models.PROTECT)
+    topic = models.ForeignKey(to=Topic, on_delete=models.CASCADE)
     text = models.TextField()
 
     def __str__(self):
@@ -22,7 +22,7 @@ class TextAnswerableQuestion(models.Model):
 
 
 class MultipleChoice(models.Model):
-    topic = models.ForeignKey(to=Topic, on_delete=models.PROTECT)
+    topic = models.ForeignKey(to=Topic, on_delete=models.CASCADE)
     text = models.TextField()
     multiple = models.BooleanField(default=False)
 
@@ -31,7 +31,7 @@ class MultipleChoice(models.Model):
 
 
 class Choice(models.Model):
-    question = models.ForeignKey(to=MultipleChoice, on_delete=models.PROTECT)
+    question = models.ForeignKey(to=MultipleChoice, on_delete=models.CASCADE)
     text = models.CharField(max_length=200)
     count = models.IntegerField(default=0)
 
@@ -48,8 +48,8 @@ class Interviewee(models.Model):
 
 
 class Survey(models.Model):
-    topic = models.ForeignKey(to=Topic, on_delete=models.PROTECT)
-    interviewee = models.ForeignKey(to=Interviewee, on_delete=models.PROTECT)
+    topic = models.ForeignKey(to=Topic, on_delete=models.CASCADE)
+    interviewee = models.ForeignKey(to=Interviewee, on_delete=models.CASCADE)
     date = models.DateField(auto_now=True)
 
     def __str__(self):
@@ -57,9 +57,9 @@ class Survey(models.Model):
 
 
 class TextResponse(models.Model):
-    survey = models.ForeignKey(to=Survey, on_delete=models.PROTECT)
+    survey = models.ForeignKey(to=Survey, on_delete=models.CASCADE)
     question = models.ForeignKey(
-        to=TextAnswerableQuestion, on_delete=models.PROTECT)
+        to=TextAnswerableQuestion, on_delete=models.CASCADE)
     text = models.TextField()
 
     def __str__(self):
@@ -67,6 +67,7 @@ class TextResponse(models.Model):
 
 
 class MultipleResponse(models.Model):
-    survey = models.ForeignKey(to=Survey, on_delete=models.PROTECT)
+    survey = models.ForeignKey(to=Survey, on_delete=models.CASCADE)
     question = models.ForeignKey(
-        to=MultipleChoice, on_delete=models.PROTECT)
+        to=MultipleChoice, on_delete=models.CASCADE)
+    choice = models.ForeignKey(to=Choice, on_delete=models.CASCADE)
