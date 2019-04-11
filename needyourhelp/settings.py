@@ -96,6 +96,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
+CSRF_COOKIE_NAME = 'needyourhelp_token'
 
 
 # Password validation

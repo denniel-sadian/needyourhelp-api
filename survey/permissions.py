@@ -29,8 +29,9 @@ class IsAbleToCreate(BasePermission):
 
 
 class IsOwnerOrTopicDone(BasePermission):
+    message = "The survey isn't yet done or you're not the topic owner."
 
-    def has_object_permission(self, request, view):
+    def has_permission(self, request, view):
         topic_id = view.kwargs['topic_id']
         topic = get_object_or_404(models.Topic, id=topic_id)
         if topic.owner == request.user:
