@@ -287,19 +287,21 @@ class ResultView(APIView):
                 }])
             results['questions'].append(answers)
 
-        # Getting choices' counts to the multiple questions.
+        # Getting the multiple choice questions.
         for multiple in topic.multiplechoice_set.all():
             question = {
                 'question': str(multiple),
                 'choose-all': multiple.multiple,
                 'choices': []
             }
+            # Getting the choices to the multiple choices.
             for choice in multiple.choice_set.all():
                 item = {
                     'choice': str(choice),
                     'counts': choice.count,
                     'respondents-who-chose': set()
                 }
+                # Getting those respondents who chose the choices.
                 for response in models.MultipleResponse.objects.filter(
                         question=multiple, survey__topic=topic, choice=choice):
                     item['respondents-who-chose'].add(
