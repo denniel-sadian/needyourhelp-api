@@ -20,8 +20,8 @@ def get_or_create_interviewee(request, data):
     # If there's a user logged in, then the name of him/her
     # will be used.
     if request.user.is_authenticated:
-        data['first_name'] = request.user.first_name
-        data['last_name'] = request.user.last_name
+        data['first_name'] = request.user.first_name.lower()
+        data['last_name'] = request.user.last_name.lower()
 
     # Checks if there's an interviewee already.
     # Creates it if none yet.
@@ -273,7 +273,7 @@ class ResultView(APIView):
 
         # Getting the interviewees.
         for survey in models.Survey.objects.filter(topic=topic):
-            results['respondents'].add(str(survey.interviewee))
+            results['respondents'].add(str(survey.interviewee).upper())
         results['total-respondents'] = len(results['respondents'])
 
         # Getting the answers to the questions.
@@ -282,7 +282,7 @@ class ResultView(APIView):
             for response in models.TextResponse.objects.filter(
                     question=question, survey__topic=topic):
                 answers['answers'].append([{
-                    'respondent': str(response.survey.interviewee),
+                    'respondent': str(response.survey.interviewee).upper(),
                     'answer': response.text
                 }])
             results['questions'].append(answers)
@@ -305,7 +305,7 @@ class ResultView(APIView):
                 for response in models.MultipleResponse.objects.filter(
                         question=multiple, survey__topic=topic, choice=choice):
                     item['respondents-who-chose'].add(
-                        str(response.survey.interviewee))
+                        str(response.survey.interviewee).upper())
                 question['choices'].append(item)
             results['multiple-choice-questions'].append(question)
 
