@@ -52,6 +52,11 @@ class Survey(models.Model):
     interviewee = models.ForeignKey(to=Interviewee, on_delete=models.CASCADE)
     date = models.DateField(auto_now=True)
 
+    class Meta:
+        unique_together = (
+            ('topic', 'interviewee')
+        )
+
     def __str__(self):
         return f'{self.interviewee} to {self.topic}'
 
