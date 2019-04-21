@@ -16,23 +16,30 @@ from . import permissions as perms
 def get_or_create_interviewee(request, data):
     """Getting or creating the interviewee."""
     interviewee = models.Interviewee
+    firstname = ''
+    lastname = ''
 
-    # If there's a user logged in, then the name of him/her
-    # will be used.
-    if request.user.is_authenticated:
-        data['first_name'] = request.user.first_name.lower()
-        data['last_name'] = request.user.last_name.lower()
+    # Uses the authenticated user's credentials.
+    names_not_present = (
+        'first_name' not in data and 'last_name' not in data
+    )
+    if request.user.is_authenticated and names_not_present:
+        firstname = request.user.first_name.lower()
+        lastname = request.user.last_name.lower()
+    else:
+        firstname = data['first_name'].lower()
+        lastname = data['last_name'].lower()
 
     # Checks if there's an interviewee already.
     # Creates it if none yet.
     if models.Interviewee.objects.filter(
-            first_name=data['first_name'], last_name=data['last_name']).exists():
+            first_name=firstname, last_name=lastname).exists():
         interviewee = get_object_or_404(
-            models.Interviewee, first_name=data['first_name'],
-            last_name=data['last_name'])
+            models.Interviewee, first_name=firstname,
+            last_name=lastname)
     else:
         interviewee = models.Interviewee(
-            first_name=data['first_name'], last_name=data['last_name'])
+            first_name=firstname, last_name=lastname)
         interviewee.save()
 
     return interviewee
@@ -134,22 +141,21 @@ class ChoiceViewSet(ModelViewSet):
     """Viewset for choices."""
     queryset = models.Choice.objects.all()
     serializer_class = serializers.ChoiceSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-                          perms.IsTopicOwnerOrReadOnly)
+    permission_classes = (perms.IsTopicOwnerOrReadOnly, perms.IsAbleToCreateOrChoose)
 
     def get_queryset(self):
         """Gets the choices from the question coming from the topic."""
         params = self.kwargs
         topic = get_object_or_404(models.Topic, id=params['topic_id'])
         question = topic.multiplechoice_set.get(id=params['id'])
-        return question.choice_set.all()
+        return question.choices.all()
 
     def get_object(self):
         """Gets the choice from the question coming from the topic."""
         params = self.kwargs
         topic = get_object_or_404(models.Topic, id=params['topic_id'])
         question = topic.multiplechoice_set.get(id=params['mc_id'])
-        return question.choice_set.get(id=params['id'])
+        return question.choices.get(id=params['id'])
 
     def perform_create(self, serializer):
         """Gets the question from the topic then saves it with
@@ -178,7 +184,7 @@ class ChoiceViewSet(ModelViewSet):
         question = topic.multiplechoice_set.get(id=params['mc_id'])
 
         # Getting the choice.
-        choice = question.choice_set.get(id=params['id'])
+        choice = question.choices.get(id=params['id'])
 
         # Getting the interviewee.
         interviewee = get_or_create_interviewee(request, data)
@@ -295,12 +301,14 @@ class ResultView(APIView):
                 'choices': []
             }
             # Getting the choices to the multiple choices.
-            for choice in multiple.choice_set.all():
+            for choice in multiple.choices.all():
                 item = {
                     'choice': str(choice),
                     'counts': choice.count,
                     'respondents-who-chose': set()
                 }
+                item['percent'] = round(
+                    (choice.count*100) / results['total-respondents'], 2)
                 # Getting those respondents who chose the choices.
                 for response in models.MultipleResponse.objects.filter(
                         question=multiple, survey__topic=topic, choice=choice):

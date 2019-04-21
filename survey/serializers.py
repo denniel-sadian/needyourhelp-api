@@ -46,10 +46,13 @@ from . import models
 
 class TopicSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
+    owner_firstname = serializers.ReadOnlyField(source='owner.first_name')
+    owner_lastname = serializers.ReadOnlyField(source='owner.last_name')
 
     class Meta:
         model = models.Topic
-        fields = '__all__'
+        fields = ('id', 'title', 'description', 'date_started', 'done',
+                  'owner', 'owner_firstname', 'owner_lastname')
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -60,10 +63,11 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class MultipleChoiceSerializer(serializers.ModelSerializer):
+    choices = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = models.MultipleChoice
-        fields = '__all__'
+        fields = ('id', 'topic', 'text', 'multiple', 'choices')
 
 
 class ChoiceSerializer(serializers.ModelSerializer):

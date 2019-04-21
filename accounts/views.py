@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.contrib.auth import logout, login
+from django.middleware.csrf import get_token
 from rest_framework.generics import CreateAPIView
 from rest_framework.views import APIView
 from rest_framework import status
@@ -38,3 +39,12 @@ class LoginView(APIView):
 def log_out(request):
     logout(request)
     return Response({'detail': 'Logged out'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def me(request):
+    if request.user.is_authenticated:
+        return Response(data=UserSerializer(request.user).data,
+                        status=status.HTTP_200_OK)
+    return Response(data={}, status=status.HTTP_200_OK)
+    

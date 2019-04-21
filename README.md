@@ -22,7 +22,7 @@ topics/<int:topic_id>/surveys/
 {"first_name": "Bon Bon", "last_name": "Sadian"}
 {"first_name": "Denniel Luis", "last_name": "Sadian", "text": ""}
 
-Topic.objects.all()[0].multiplechoice_set.all()[0].choice_set.all()[0].count
+Topic.objects.all()[0].multiplechoice_set.all()[0].choices.all()[0].count
 Topic -> MultipleChoice -> Choice
 
 topics/<int:topic_id>/multiplechoice/

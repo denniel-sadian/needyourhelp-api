@@ -19,10 +19,12 @@ class IsTopicOwnerOrReadOnly(BasePermission):
             return obj.topic.owner == request.user
 
 
-class IsAbleToCreate(BasePermission):
+class IsAbleToCreateOrChoose(BasePermission):
 
     def has_permission(self, request, view):
         topic = get_object_or_404(models.Topic, id=view.kwargs['topic_id'])
+        if 'id' in view.kwargs:
+            return True
         if request.method not in SAFE_METHODS:
             return request.user == topic.owner
         return True

@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 class Topic(models.Model):
     owner = models.ForeignKey(to=User, on_delete=models.PROTECT)
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, unique=True)
     description = models.TextField()
     date_started = models.DateField(auto_now=True)
     done = models.BooleanField(default=False)
@@ -31,7 +31,7 @@ class MultipleChoice(models.Model):
 
 
 class Choice(models.Model):
-    question = models.ForeignKey(to=MultipleChoice, on_delete=models.CASCADE)
+    question = models.ForeignKey(to=MultipleChoice, related_name='choices', on_delete=models.CASCADE)
     text = models.CharField(max_length=200)
     count = models.IntegerField(default=0)
 
@@ -45,6 +45,9 @@ class Interviewee(models.Model):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+    
+    class Meta:
+        unique_together = ('first_name', 'last_name')
 
 
 class Survey(models.Model):
@@ -52,13 +55,11 @@ class Survey(models.Model):
     interviewee = models.ForeignKey(to=Interviewee, on_delete=models.CASCADE)
     date = models.DateField(auto_now=True)
 
-    class Meta:
-        unique_together = (
-            ('topic', 'interviewee')
-        )
-
     def __str__(self):
         return f'{self.interviewee} to {self.topic}'
+    
+    class Meta:
+        unique_together = ('topic', 'interviewee')
 
 
 class TextResponse(models.Model):
