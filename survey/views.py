@@ -103,7 +103,8 @@ class TopicViewSet(ModelViewSet):
                             status=status.HTTP_200_OK)
         elif request.method == 'POST':
             question = models.MultipleChoice(
-                topic=self.get_object(), text=request.data['text'])
+                topic=self.get_object(), text=request.data['text'],
+                multiple=request.data['multiple'])
             question.save()
             serializer = serializers.MultipleChoiceSerializer(question)
             return Response(data=serializer.data,
@@ -220,11 +221,39 @@ class ChoiceViewSet(ModelViewSet):
                         status=status.HTTP_201_CREATED)
 
 
+class RespondedToQuestionView(APIView):
+    """View that tells whether an interview had responded already."""
+
+    def post(self, request, *args, **kwargs):
+        """POST is the only available method."""
+        firstname = request.data['firstname'].lower()
+        lastname = request.data['lastname'].lower()
+        params = kwargs
+
+        # Getting the interviewee.
+        interviewee = models.Interviewee
+        if models.Interviewee.objects.filter(first_name=firstname,
+                last_name=lastname).exists():
+            interviewee = get_object_or_404(
+                models.Interviewee, first_name=firstname, last_name=lastname)
+        else:
+            return Response(data={'responded': False}, status=status.HTTP_200_OK)
+
+        # Getting the topic.
+        topic = get_object_or_404(models.Topic, id=params['topic_id'])
+
+        # Determining if the survey exists.
+        if models.Survey.objects.filter(topic=topic, interviewee=interviewee).exists():
+            return Response(data={'responded': True}, status=status.HTTP_200_OK)
+        else:
+            return Response(data={'responded': False}, status=status.HTTP_200_OK)
+
+
 class RespondToQuestionView(APIView):
     """View for responding to a question."""
 
     def post(self, request, *args, **kwargs):
-        """POST is only available."""
+        """POST is the only available method."""
         data = request.data
         params = kwargs
 
@@ -268,36 +297,41 @@ class ResultView(APIView):
         """Get is only available."""
         params = kwargs
         results = {
-            'respondents': set(),
-            'total-respondents': int,
+            'respondents': [],
+            'total_respondents': int,
             'questions': [],
-            'multiple-choice-questions': []
+            'multiple_choice_questions': []
         }
 
         # Getting the topic.
         topic = get_object_or_404(models.Topic, id=params['topic_id'])
+        results['topic'] = serializers.TopicSerializer(topic).data
 
         # Getting the interviewees.
         for survey in models.Survey.objects.filter(topic=topic):
-            results['respondents'].add(str(survey.interviewee).upper())
-        results['total-respondents'] = len(results['respondents'])
+            results['respondents'].append(
+                {
+                    'name': str(survey.interviewee).upper(),
+                    'when': survey.date
+                })
+        results['total_respondents'] = len(results['respondents'])
 
         # Getting the answers to the questions.
         for question in topic.textanswerablequestion_set.all():
             answers = {'question': str(question), 'answers': []}
             for response in models.TextResponse.objects.filter(
                     question=question, survey__topic=topic):
-                answers['answers'].append([{
+                answers['answers'].append({
                     'respondent': str(response.survey.interviewee).upper(),
                     'answer': response.text
-                }])
+                })
             results['questions'].append(answers)
 
         # Getting the multiple choice questions.
         for multiple in topic.multiplechoice_set.all():
             question = {
                 'question': str(multiple),
-                'choose-all': multiple.multiple,
+                'choose_all': multiple.multiple,
                 'choices': []
             }
             # Getting the choices to the multiple choices.
@@ -305,16 +339,22 @@ class ResultView(APIView):
                 item = {
                     'choice': str(choice),
                     'counts': choice.count,
-                    'respondents-who-chose': set()
+                    'respondents_who_chose': set()
                 }
                 item['percent'] = round(
-                    (choice.count*100) / results['total-respondents'], 2)
+                    (choice.count*100) / results['total_respondents'], 2)
                 # Getting those respondents who chose the choices.
                 for response in models.MultipleResponse.objects.filter(
                         question=multiple, survey__topic=topic, choice=choice):
-                    item['respondents-who-chose'].add(
+                    item['respondents_who_chose'].add(
                         str(response.survey.interviewee).upper())
                 question['choices'].append(item)
-            results['multiple-choice-questions'].append(question)
+            results['multiple_choice_questions'].append(question)
 
         return Response(data=results, status=status.HTTP_200_OK)
+
+
+class IntervieweeCreateView(generics.CreateAPIView):
+    """View for creating a interviewee"""
+    serializer_class = serializers.IntervieweeSerializer
+            
