@@ -339,10 +339,12 @@ class ResultView(APIView):
                 item = {
                     'choice': str(choice),
                     'counts': choice.count,
-                    'respondents_who_chose': set()
+                    'respondents_who_chose': set(),
+                    'percent': 0
                 }
-                item['percent'] = round(
-                    (choice.count*100) / results['total_respondents'], 2)
+                if results['total_respondents'] > 0:
+                    item['percent'] = round(
+                        (choice.count*100) / results['total_respondents'], 2)
                 # Getting those respondents who chose the choices.
                 for response in models.MultipleResponse.objects.filter(
                         question=multiple, survey__topic=topic, choice=choice):
