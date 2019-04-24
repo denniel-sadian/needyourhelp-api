@@ -1,16 +1,20 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.timezone import datetime
 
 
 class Topic(models.Model):
     owner = models.ForeignKey(to=User, on_delete=models.PROTECT)
     title = models.CharField(max_length=200, unique=True)
     description = models.TextField()
-    date_started = models.DateField(auto_now=True)
+    date_started = models.DateField(default=datetime.now)
     done = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
+    
+    class Meta:
+        ordering = ('-date_started', 'title')
 
 
 class TextAnswerableQuestion(models.Model):
@@ -37,6 +41,9 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.text
+    
+    class Meta: 
+        unique_together = ('question', 'text')
 
 
 class Interviewee(models.Model):
