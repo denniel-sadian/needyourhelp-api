@@ -69,7 +69,7 @@ class TopicViewSet(ModelViewSet):
         """Saves the user as the owner."""
         serializer.save(owner=self.request.user)
 
-    @action(detail=True, methods=['GET', 'POST'],
+    @action(detail=False, methods=['GET', 'POST'],
             serializer_class=serializers.QuestionSerializer)
     def questions(self, request, *args, **kwargs):
         """Extra action for listing all or creating
@@ -90,7 +90,7 @@ class TopicViewSet(ModelViewSet):
                 data=serializer.data,
                 status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['GET', 'POST'],
+    @action(detail=False, methods=['GET', 'POST'],
             serializer_class=serializers.MultipleChoiceSerializer)
     def multiplechoices(self, request, *args, **kwargs):
         """Extra action for listing all the topic's
