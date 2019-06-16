@@ -14,7 +14,9 @@ from . import permissions as perms
 
 
 def get_or_create_interviewee(request, data):
-    """Getting or creating the interviewee."""
+    """
+    Getting or creating the interviewee.
+    """
     interviewee = models.Interviewee
     firstname = ''
     lastname = ''
@@ -46,7 +48,9 @@ def get_or_create_interviewee(request, data):
 
 
 def get_or_create_survey(topic, interviewee):
-    """Getting or creating the survey."""
+    """
+    Getting or creating the survey.
+    """
     survey = models.Survey
 
     # Gets or creates the survey for the topic and interviewee.
@@ -59,7 +63,9 @@ def get_or_create_survey(topic, interviewee):
 
 
 class TopicViewSet(ModelViewSet):
-    """Viewset for topics."""
+    """
+    Viewset for topics.
+    """
     queryset = models.Topic.objects.all()
     serializer_class = serializers.TopicSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
@@ -69,7 +75,7 @@ class TopicViewSet(ModelViewSet):
         """Saves the user as the owner."""
         serializer.save(owner=self.request.user)
 
-    @action(detail=False, methods=['GET', 'POST'],
+    @action(detail=True, methods=['GET', 'POST'],
             serializer_class=serializers.QuestionSerializer)
     def questions(self, request, *args, **kwargs):
         """Extra action for listing all or creating
@@ -90,7 +96,7 @@ class TopicViewSet(ModelViewSet):
                 data=serializer.data,
                 status=status.HTTP_201_CREATED)
 
-    @action(detail=False, methods=['GET', 'POST'],
+    @action(detail=True, methods=['GET', 'POST'],
             serializer_class=serializers.MultipleChoiceSerializer)
     def multiplechoices(self, request, *args, **kwargs):
         """Extra action for listing all the topic's
@@ -112,11 +118,12 @@ class TopicViewSet(ModelViewSet):
 
 
 class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
-    """View for displaying the question's detail."""
+    """
+    View for displaying the question's detail.
+    """
     queryset = models.TextAnswerableQuestion.objects.all()
     serializer_class = serializers.QuestionSerializer
     permission_classes = (perms.IsTopicOwnerOrReadOnly,)
-    lookup_field = 'id'
 
     def get_object(self):
         """Gets the question from the topic's set."""
@@ -125,12 +132,13 @@ class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class MultipleChoiceDetail(generics.RetrieveUpdateDestroyAPIView):
-    """View for displaying the multiple choice question's detail"""
+    """
+    View for displaying the multiple choice question's detail.
+    """
     queryset = models.TextAnswerableQuestion.objects.all()
     serializer_class = serializers.MultipleChoiceSerializer
     permission_classes = (perms.IsTopicOwnerOrReadOnly,
                           permissions.IsAuthenticatedOrReadOnly)
-    lookup_field = 'id'
 
     def get_object(self):
         """Gets the multiple choice from the topic's set."""
@@ -139,10 +147,13 @@ class MultipleChoiceDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ChoiceViewSet(ModelViewSet):
-    """Viewset for choices."""
+    """
+    Viewset for choices.
+    """
     queryset = models.Choice.objects.all()
     serializer_class = serializers.ChoiceSerializer
-    permission_classes = (perms.IsTopicOwnerOrReadOnly, perms.IsAbleToCreateOrChoose)
+    permission_classes = (perms.IsTopicOwnerOrReadOnly,
+                          perms.IsAbleToCreateOrChoose)
 
     def get_queryset(self):
         """Gets the choices from the question coming from the topic."""
@@ -222,7 +233,9 @@ class ChoiceViewSet(ModelViewSet):
 
 
 class RespondedToQuestionView(APIView):
-    """View that tells whether an interview had responded already."""
+    """
+    View that tells whether an interview had responded already.
+    """
 
     def post(self, request, *args, **kwargs):
         """POST is the only available method."""
@@ -250,7 +263,9 @@ class RespondedToQuestionView(APIView):
 
 
 class RespondToQuestionView(APIView):
-    """View for responding to a question."""
+    """
+    View for responding to a question.
+    """
 
     def post(self, request, *args, **kwargs):
         """POST is the only available method."""
@@ -290,7 +305,9 @@ class RespondToQuestionView(APIView):
 
 
 class ResultView(APIView):
-    """View for viewing topics' results."""
+    """
+    View for viewing topics' results.
+    """
     permission_classes = (perms.IsOwnerOrTopicDone,)
 
     def get(self, request, *args, **kwargs):
@@ -357,6 +374,8 @@ class ResultView(APIView):
 
 
 class IntervieweeCreateView(generics.CreateAPIView):
-    """View for creating a interviewee"""
+    """
+    View for creating an interviewee.
+    """
     serializer_class = serializers.IntervieweeSerializer
             

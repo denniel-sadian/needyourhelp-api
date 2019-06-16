@@ -6,6 +6,9 @@ from . import models
 
 
 class IsTopicOwnerOrReadOnly(BasePermission):
+    """
+    Is the user the topic owner, or is it read only?
+    """
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
@@ -20,6 +23,9 @@ class IsTopicOwnerOrReadOnly(BasePermission):
 
 
 class IsAbleToCreateOrChoose(BasePermission):
+    """
+    Is the user able to create or choose?
+    """
 
     def has_permission(self, request, view):
         topic = get_object_or_404(models.Topic, id=view.kwargs['topic_id'])
@@ -31,6 +37,9 @@ class IsAbleToCreateOrChoose(BasePermission):
 
 
 class IsOwnerOrTopicDone(BasePermission):
+    """
+    Is the user the owner or is the topic done?
+    """
     message = "The survey isn't yet done or you're not the topic owner."
 
     def has_permission(self, request, view):
